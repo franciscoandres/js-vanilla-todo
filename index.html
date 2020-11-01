@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List App</title>
+  <style>
+    html {
+      box-sizing: border-box;
+    }
+
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+
+    body {
+      font-family: sans-serif;
+    }
+
+    .about {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Todo List App</h1>
+  </header>
+  <form id="form">
+    <input id="inputTodo" type="text" name="body" placeholder="Learn SQL" autofocus>
+    <button id="actionAdd" type="submit">Add</button>
+  </form>
+  <nav>
+    <p>
+      <button id="actionMarkAllAsCompleted">Mark all as completed</button>
+      <button id="actionDeleteAll">Delete all</button>
+    </p>
+  </nav>
+  <div id="todosUl"></div>
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <div class="about">
+    <p><b>About</b></p>
+    <p>The well-known js vanilla todo app.</p>
+  </div>
+  <script>
+
+    const LOCAL_STORAGE_NAME = "todos";
+    const form = document.querySelector("#form");
+    const inputTodo = document.querySelector("#inputTodo");
+    const actionAdd = document.querySelector("#actionAdd");
+    const actionMarkAllAsCompleted = document.querySelector("#actionMarkAllAsCompleted");
+    const actionDeleteAll = document.querySelector("#actionDeleteAll");
+    const todosUl = document.querySelector("#todosUl");
+
+    let state = [];
+
+    function loadFromLocalStorage (name) {
+      const storage = localStorage.getItem(name);
+      if (storage) {
+        return JSON.parse(storage);
+      } else {
+        return [];
+      }
+    }
+
+    function saveToLocalStorage (name, items) {
+      localStorage.setItem(name, JSON.stringify(items));
+    }
+
+    function insertTodo (state, item) {
+      return [...state, item];
+    }
+    
+    function deleteById (state, itemId) {
+      return state.filter(({ id }) => id !== itemId);
+    }
+
+    function updateCompletedById (state, itemId) {
+      return state.map(item => item.id === itemId ? Object.assign({}, { ...item, completed: !item.completed }) : { ...item });
+    }
+
+    function updateAllAsCompleted (state) {
+      return state.map(item => !item.completed ? { ...item, completed: true } : { ...item });
+    }
+
+    function deleteAll (state) {
+      return state = [];
+    }
+
+    function render () {
+      const itemsLi = state.map(item =>
+        `<div>
+          <p>
+            <button data-id=${item.id} data-action="completed">&#10004;	</button> <button data-id=${item.id} data-action="delete">X</button>
+            <span style="text-decoration: ${item.completed ? "line-through" : "initial"}">${item.body}</span>
+          <p>
+        </div>`
+      ).join('');
+      todosUl.innerHTML = itemsLi;
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const myForm = new FormData(form);
+      const body = myForm.get("body");
+      if (!body || !body.trim().length) {
+        alert("Todo field is empty");
+        return;
+      }
+      state = insertTodo(state, { id: Math.floor(Date.now() * Math.random()), body, completed: false });
+      saveToLocalStorage(LOCAL_STORAGE_NAME, state);
+      render();
+      form.reset();
+    });
+
+    todosUl.addEventListener("click", function (event) {
+      const { id, action } = event.srcElement.dataset;
+
+      if (action === "delete") {
+        state = deleteById(state, Number(id));
+      }
+
+      if (action === "completed") {
+        state = updateCompletedById(state, Number(id));
+      }
+
+      saveToLocalStorage(LOCAL_STORAGE_NAME, state);
+      render();
+    });
+
+    actionMarkAllAsCompleted.addEventListener("click", (event) => {
+      event.preventDefault();
+      state = updateAllAsCompleted(state);
+      saveToLocalStorage(LOCAL_STORAGE_NAME, state);
+      render();
+    });
+
+    actionDeleteAll.addEventListener("click", (event) => {
+      event.preventDefault();
+      state = deleteAll(state);
+      saveToLocalStorage(LOCAL_STORAGE_NAME, state);
+      render();
+    });
+
+    state = loadFromLocalStorage(LOCAL_STORAGE_NAME);
+    render();
+    
+  </script>
+</body>
+</html>
